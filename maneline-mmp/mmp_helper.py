@@ -26,10 +26,19 @@ class SubprocessTaskGroup(asyncio.TaskGroup):
         proc.text_io = text_io
         self.subprocess_map[subprocess_tag]=proc
         await(asyncio.sleep(proc.sleep_factor))
+    async def sp_write(self,tag, message):
+        p = self.subprocess_map[tag]
+        if p.text_io is True:
+            message = message.encode()
+        await asyncio.sleep(p.sleep_factor)
+        p.stdin.write(message)
+        print("written")
+        await p.stdin.drain()
+        print("drained")
     async def sp_read(self,tag):
         p = self.subprocess_map[tag]
         await asyncio.sleep(p.sleep_factor)
-        retval = await p.stdout.read()
+        retval = await p.stdout.readline()
         if p.text_io:
             retval = retval.decode()
         return retval
@@ -46,10 +55,19 @@ class SubprocessTaskGroup(asyncio.TaskGroup):
 
 
 async def main_v4():
+    _TAG_GATTTOOL = "gatttool"
     async with SubprocessTaskGroup() as tg:
         task1 = await tg.create_subprocess_task("task1", "sleep 1 ; echo 1")
-        task2 = await tg.create_subprocess_task("task2", "sleep 2 ; echo 2")
+        gattool_task = await tg.create_subprocess_task(_TAG_GATTTOOL, "gatttool -b  84:17:15:2B:4E:7E -I")
         print(f"started at {time.strftime('%X')}")
+        await asyncio.sleep(1)
+        await tg.sp_write(_TAG_GATTTOOL,"connect\n")
+        await asyncio.sleep(10)
+        for i in range(0,3):
+            print("reading")
+            gt_output = await tg.sp_read(_TAG_GATTTOOL)
+            print("read: " + gt_output)
+        await tg.sp_write(_TAG_GATTTOOL,"exit\n")
         await tg.wait_for_processes()
 
     # The await is implicit when the context manager exits.
