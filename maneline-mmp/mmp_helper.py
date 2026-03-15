@@ -45,4 +45,26 @@ async def main_v3():
 
     print(f"finished at {time.strftime('%X')}")
 
-asyncio.run(main_v3())
+class SubprocessTaskGroup(asyncio.TaskGroup):
+    def __init__(self):
+        super().__init__()
+        self.subprocess_map = {}
+
+async def main_v4():
+    async with SubprocessTaskGroup() as tg:
+        task1 = tg.create_task(
+            say_after(1, 'stg-hello'))
+
+        task2 = tg.create_task(
+            say_after(2, 'stg-world'))
+
+        print(f"started at {time.strftime('%X')}")
+
+    # The await is implicit when the context manager exits.
+
+    print(f"finished at {time.strftime('%X')}")
+
+
+
+
+asyncio.run(main_v4())
