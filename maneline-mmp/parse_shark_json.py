@@ -28,19 +28,31 @@ class SharkJsonParser :
                 target = target[key]
 
     @staticmethod
-    def message_command_comment(message):
+    def process_command_message(message):
         bthci_cmd = SharkJsonParser.message_attr(message, "_source|layers|bthci_cmd")
         if bthci_cmd is None:
             return False
         frame_number = int(SharkJsonParser.message_attr(message, '_source|layers|frame|frame.number'))
-        cmd_opcode = bthci_cmd['bthci_cmd.opcode']
-        cmd_param = bthci_cmd['bthci_cmd.param_length']
-        cmd_param += ": " + bthci_cmd.get('bthci_cmd.parameter',"-")
-        print(f"# Frame: {frame_number} command {cmd_opcode} {cmd_param}")
+        opcode = bthci_cmd['bthci_cmd.opcode']
+        param = bthci_cmd['bthci_cmd.param_length']
+        param += ": " + bthci_cmd.get('bthci_cmd.parameter',"-")
+        print(f"# Frame: {frame_number} command {opcode} {param}")
         return True
 
     @staticmethod
-    def message_event_comment(message):
+    def process_attribute_message(message):
+        btatt = SharkJsonParser.message_attr(message, "_source|layers|btatt")
+        if btatt is None:
+            return False
+        frame_number = int(SharkJsonParser.message_attr(message, '_source|layers|frame|frame.number'))
+        opcode = btatt['btatt.opcode']
+        handle = btatt.get('btatt.handle','-')
+        value = btatt.get('btatt.value','-')
+        print(f"# Frame: {frame_number} attribute {opcode} {handle} {value}")
+        return True
+
+    @staticmethod
+    def process_event_message(message):
         bthci_evt = SharkJsonParser.message_attr(message, "_source|layers|bthci_evt")
         if bthci_evt is None:
             return False
@@ -54,9 +66,11 @@ if __name__ == "__main__":
     sjp = SharkJsonParser(sys.argv[1:])
     print(len(sjp.messages))
     for m in sjp.messages:
-        if SharkJsonParser.message_command_comment(m):
+        if SharkJsonParser.process_command_message(m):
             pass
-        elif SharkJsonParser.message_event_comment(m):
+        elif SharkJsonParser.process_attribute_message(m):
+            pass
+        elif SharkJsonParser.process_event_message(m):
             pass
         else:
             pass
