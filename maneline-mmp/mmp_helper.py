@@ -156,14 +156,13 @@ class ScriptRunner:
 
 
 async def get_mmp_bdaddr(task_group, tag):
-    await asyncio.sleep(0.1)
+    await asyncio.sleep(1.0)
     await task_group.sp_write(tag,"\n") # for output clarity
     await task_group.sp_write(tag,"scan.clear\n")
     await task_group.sp_write(tag,"scan.pattern 'Mustang Micro Plus'\n")
     await task_group.sp_write(tag,"scan le\n")
     await asyncio.sleep(2.0)
     await task_group.sp_write(tag,"scan off\n")
-    await task_group.sp_write(tag,"quit\n")
     scan_output = await task_group.sp_read(tag,1.0)
     bdaddr_pattern = re.compile(r"Device ([:\d\w]+) RSSI")
     bdaddr_match = bdaddr_pattern.search(scan_output)
@@ -172,16 +171,44 @@ async def get_mmp_bdaddr(task_group, tag):
     else:
         return None
 
+async def subscribe_for_gatt_replies(task_group, tag, bdaddr):
+    await asyncio.sleep(0.1)
+    await task_group.sp_write(tag,"\n") # for output clarity
+    await task_group.sp_write(tag,f"connect {bdaddr}\n")
+    await asyncio.sleep(1.0)
+    await task_group.sp_write(tag,f"gatt.list-attributes\n")
+    await asyncio.sleep(5.0)
+    char_output=await task_group.sp_read(tag,5.0)
+    print(f"Connect output:\n>>>>\n{char_output}\n<<<<\n")
+    char_pattern = re.compile(r"(/org/bluez/\w+/\w+/service0015/char0016)")
+    char_match = char_pattern.search(char_output)
+    if char_match is None:
+        raise RuntimeError("Failed to find GATT characteristic for HCI responses")
+    char_bluez_path = char_match.group(1)
+    await task_group.sp_write(tag,f"gatt.select-attribute {char_bluez_path}")
+    await task_group.sp_write(tag,f"gatt.notify on")
+    print(f"Subscribed for HCI responses on {char_bluez_path}")
+
+
 async def mmp_main():
     _TAG_BTCTL = "btctl"
     print(f"started at {time.strftime('%X')}")
     async with SubprocessTaskGroup() as tg:
-        btctl_task = await tg.create_subprocess_task(_TAG_BTCTL,"bluetoothctl")
-        bdaddr = await get_mmp_bdaddr(tg, _TAG_BTCTL)
-        if bdaddr is not None:
-            print(f"MMP bdaddr: {bdaddr}",flush=True)
-        else:
-            print("No MMP detected",flush=True)
+
+        try:
+            btctl_task = await tg.create_subprocess_task(_TAG_BTCTL,"bluetoothctl")
+            bdaddr = await get_mmp_bdaddr(tg, _TAG_BTCTL)
+            if bdaddr is not None:
+                print(f"MMP bdaddr: {bdaddr}",flush=True)
+            else:
+                raise RuntimeError("No MMP detected")
+            await subscribe_for_gatt_replies(tg, _TAG_BTCTL, bdaddr)
+
+        except RuntimeError:
+            traceback.print_exception(sys.exc_info()[1])
+
+        finally:
+            await tg.sp_write(_TAG_BTCTL,"quit\n")
 
         gc.collect()
 

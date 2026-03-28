@@ -1,0 +1,104 @@
+[
+  {
+    "_index": "packets-2026-03-27",
+    "_type": "doc",
+    "_score": null,
+    "_source": {
+      "layers": {
+        "frame": {
+          "frame.encap_type": "99",
+          "frame.time": "Mar 27, 2026 17:07:13.121052000 AWST",
+          "frame.time_utc": "Mar 27, 2026 09:07:13.121052000 UTC",
+          "frame.time_epoch": "1774602433.121052000",
+          "frame.offset_shift": "0.000000000",
+          "frame.time_delta": "0.463266000",
+          "frame.time_delta_displayed": "0.463266000",
+          "frame.time_relative": "829.012664000",
+          "frame.number": "1095",
+          "frame.len": "20",
+          "frame.cap_len": "20",
+          "frame.marked": "0",
+          "frame.ignored": "0",
+          "frame.p2p_dir": "0",
+          "frame.protocols": "bluetooth:hci_h4:bthci_acl:btl2cap:btatt"
+        },
+        "bluetooth": "Bluetooth",
+        "hci_h4": {
+          "hci_h4.direction": "0x00",
+          "hci_h4.type": "0x02"
+        },
+        "bthci_acl": {
+          "bthci_acl.chandle": "0x0002",
+          "bthci_acl.pb_flag": "0",
+          "bthci_acl.bc_flag": "0",
+          "bthci_acl.length": "15",
+          "bthci_acl.data": "",
+          "bthci_acl.connect_in": "847",
+          "bthci_acl.src.bd_addr": "80:5a:04:11:4c:db",
+          "bthci_acl.src.name": "Nexus 5X",
+          "bthci_acl.src.role": "0",
+          "bthci_acl.dst.bd_addr": "84:17:15:2b:4e:7e",
+          "bthci_acl.dst.name": "Mustang Micro Plus",
+          "bthci_acl.dst.role": "0",
+          "bthci_acl.mode": "-1"
+        },
+        "btl2cap": {
+          "btl2cap.length": "11",
+          "btl2cap.cid": "0x0004"
+        },
+        "btatt": {
+          "btatt.opcode": "0x52",
+          "btatt.opcode_tree": {
+            "btatt.opcode.authentication_signature": "0",
+            "btatt.opcode.command": "1",
+            "btatt.opcode.method": "0x12"
+          },
+          "btatt.handle": "0x001b",
+          "btatt.handle_tree": {
+            "btatt.service_uuid128": "90:55:95:80:b7:07:11:ee:ac:b1:7b:7e:30:f1:af:54",
+            "btatt.uuid128": "82:0a:7e:34:4e:0a:4f:90:85:20:04:eb:ce:35:a3:a1"
+          },
+          "btatt.value": "35:00:05:0a:03:c2:01:00"
+        }
+      }
+    }
+  },
+  {
+    "_index": "packets-2026-03-27",
+    "_type": "doc",
+    "_score": null,
+    "_source": {
+      "layers": {
+        "frame": {
+          "frame.encap_type": "99",
+          "frame.time": "Mar 27, 2026 17:07:13.152458000 AWST",
+          "frame.time_utc": "Mar 27, 2026 09:07:13.152458000 UTC",
+          "frame.time_epoch": "1774602433.152458000",
+          "frame.offset_shift": "0.000000000",
+          "frame.time_delta": "0.031406000",
+          "frame.time_delta_displayed": "0.031406000",
+          "frame.time_relative": "829.044070000",
+          "frame.number": "1096",
+          "frame.len": "8",
+          "frame.cap_len": "8",
+          "frame.marked": "0",
+          "frame.ignored": "0",
+          "frame.p2p_dir": "1",
+          "frame.protocols": "bluetooth:hci_h4:bthci_evt"
+        },
+        "bluetooth": "Bluetooth",
+        "hci_h4": {
+          "hci_h4.direction": "0x01",
+          "hci_h4.type": "0x04"
+        },
+        "bthci_evt": {
+          "bthci_evt.code": "0x13",
+          "bthci_evt.param_length": "5",
+          "bthci_evt.num_handles": "1",
+          "bthci_evt.connection_handle": "0x0002",
+          "bthci_evt.num_compl_packets": "1"
+        }
+      }
+    }
+  },
+]
