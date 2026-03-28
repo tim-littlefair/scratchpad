@@ -12,6 +12,51 @@ class SharkJsonParser :
             self.messages += json.load(open(fn))
 
 
+    @staticmethod
+    def message_attr(message, pdkl):
+        # pdkl stands for 'pipe delimited key list'
+        key_list = list(reversed(list(pdkl.split("|"))))
+        target = message
+        while len(key_list)>0:
+            key = key_list.pop()
+            # print(key, key_list)
+            if key not in target:
+                return None
+            elif len(key_list)==0:
+                return target[key]
+            else:
+                target = target[key]
+
+    @staticmethod
+    def message_command_comment(message):
+        bthci_cmd = SharkJsonParser.message_attr(message, "_source|layers|bthci_cmd")
+        if bthci_cmd is None:
+            return False
+        frame_number = int(SharkJsonParser.message_attr(message, '_source|layers|frame|frame.number'))
+        cmd_opcode = bthci_cmd['bthci_cmd.opcode']
+        cmd_param = bthci_cmd['bthci_cmd.param_length']
+        cmd_param += ": " + bthci_cmd.get('bthci_cmd.parameter',"-")
+        print(f"# Frame: {frame_number} command {cmd_opcode} {cmd_param}")
+        return True
+
+    @staticmethod
+    def message_event_comment(message):
+        bthci_evt = SharkJsonParser.message_attr(message, "_source|layers|bthci_evt")
+        if bthci_evt is None:
+            return False
+        frame_number = int(SharkJsonParser.message_attr(message, '_source|layers|frame|frame.number'))
+        event_code = bthci_evt['bthci_evt.code']
+        print(f"# Frame: {frame_number} event code {event_code}")
+        return True
+
+
 if __name__ == "__main__":
     sjp = SharkJsonParser(sys.argv[1:])
     print(len(sjp.messages))
+    for m in sjp.messages:
+        if SharkJsonParser.message_command_comment(m):
+            pass
+        elif SharkJsonParser.message_event_comment(m):
+            pass
+        else:
+            pass
