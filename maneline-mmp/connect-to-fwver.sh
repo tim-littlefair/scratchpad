@@ -65,7 +65,28 @@ hcitool cmd 0x08 0x000c 0x01 0x00
 # Frame: 843 event code:0x3e,param_length:12,le_meta_subevent:0x02,le_features:None,bd_addr:eb:2c:52:e3:5d:98,data_length:0,status:None,command_in_frame:None
 
 # Frame: 844 command 008:000d 25: None
-hcitool lecc 84:17:15:2b:4e:7e
+# "bthci_cmd.param_length": "25",
+# "bthci_cmd.le_scan_interval": "96",
+# "bthci_cmd.le_scan_window": "48",
+# "bthci_cmd.le_initiator_filter_policy": "0x00",
+# "bthci_cmd.le_peer_address_type": "0x00",
+# "bthci_cmd.bd_addr": "84:17:15:2b:4e:7e",
+# "bthci_cmd.le_own_address_type": "0x01",
+# "bthci_cmd.le_con_interval_min": "24",
+# "bthci_cmd.le_con_interval_max": "40",
+# "bthci_cmd.le_con_latency": "0",
+# "bthci_cmd.le_supv_timeout": "500",
+# "bthci_cmd.le_min_ce_length": "0",
+# "bthci_cmd.le_max_ce_length": "0"
+# hcitool lecc 84:17:15:2b:4e:7e
+hcitool cmd 0x08 0x000d    0x00 0x30   0x00 0x60   0x00   0x00   0x84 0x17 0x15 0x2b 0x4e 0x7e   0x01  0x00 0x18   0x00 0x28   0x00 0x00   0x01 0xf4   0x00 0x00   0x00 0x00
+
+for i in 1 2 3 4
+do
+    sleep 2
+    echo $i
+done
+
 
 # Frame: 845 event code:0x0f,param_length:4,le_meta_subevent:None,le_features:None,bd_addr:None,data_length:None,status:0x00,command_in_frame:844
 
