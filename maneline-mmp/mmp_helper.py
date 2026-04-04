@@ -59,6 +59,9 @@ class SubprocessTaskGroup(asyncio.TaskGroup):
             retval = retval.decode()
         return retval
     async def sp_terminate(self, tag, timeout=None):
+        if tag not in self.subprocess_map:
+            print(f"{tag} was not started")
+            return
         p = self.subprocess_map[tag]
         if p.returncode is not None:
             print(f"{tag} has already exited")
@@ -160,8 +163,11 @@ async def get_mmp_bdaddr(task_group, btctl_tag, hdmp_tag):
             bd_addr = bdaddr_match.group(1)
             break
     await task_group.sp_write(btctl_tag,"scan off\n")
-    hcidump_output = await task_group.sp_read(btctl_tag,2.0)
-    # print(hcidump_output)
+    try:
+        output = await task_group.sp_read(btctl_tag,2.0)
+        print(output)
+    except asyncio.exceptions.CancelledError:
+        pass
     return bd_addr
 
 async def subscribe_for_gatt_replies(task_group, tag, bdaddr):
@@ -173,31 +179,60 @@ async def subscribe_for_gatt_replies(task_group, tag, bdaddr):
     await asyncio.sleep(1.0)
     char_output=await task_group.sp_read(tag,1.0)
     print(f"Connect output:\n>>>>\n{char_output}\n<<<<\n")
-    char_pattern = re.compile(r"(/org/bluez/\w+/\w+/service0015/char0016)")
-    char_match = char_pattern.search(char_output)
-    if char_match is None:
-        raise RuntimeError("Failed to find GATT characteristic for HCI responses")
-    char_bluez_path = char_match.group(1)
-    await task_group.sp_write(tag,f"gatt.select-attribute {char_bluez_path}")
-    await task_group.sp_write(tag,f"gatt.notify on")
-    print(f"Subscribed for HCI responses on {char_bluez_path}")
-
+    read_notify_char_pattern = re.compile(r"(/org/bluez/\w+/\w+/service0015/char0016)")
+    read_notify_char_match = read_notify_char_pattern.search(char_output)
+    if read_notify_char_match is None:
+        raise RuntimeError("Failed to find GATT characteristic for HOGP read/notify")
+    read_notify_bluez_path = read_notify_char_match.group(1)
+    write_char_pattern = re.compile(r"(/org/bluez/\w+/\w+/service0015/char001a)")
+    write_char_match = write_char_pattern.search(char_output)
+    if write_char_match is None:
+        raise RuntimeError("Failed to find GATT characteristic for HOGP write")
+    write_bluez_path = write_char_match.group(1)
+    return ( read_notify_bluez_path, write_bluez_path )
 
 async def mmp_main():
     _TAG_BTCTL = "btctl"
-    _TAG_HDMP = "hdmp"
+    _TAG_HDMPRAW = "hdmp-raw"
+    _TAG_HDMPCKD = "hdmp-cooked"
     print(f"started at {time.strftime('%X')}")
     async with SubprocessTaskGroup() as tg:
 
         try:
             btctl_task = await tg.create_subprocess_task(_TAG_BTCTL,"bluetoothctl --timeout 2")
-            hcidump_task = await tg.create_subprocess_task(_TAG_HDMP,"hcidump -X")
-            bdaddr = await get_mmp_bdaddr(tg, _TAG_BTCTL, _TAG_HDMP)
+            bdaddr = await get_mmp_bdaddr(tg, _TAG_BTCTL, _TAG_HDMPRAW)
             if bdaddr is not None:
                 print(f"MMP bdaddr: {bdaddr}",flush=True)
             else:
                 raise RuntimeError("No MMP detected")
-            await subscribe_for_gatt_replies(tg, _TAG_BTCTL, bdaddr)
+
+            ( read_notify_bluez_path, write_bluez_path)  = await subscribe_for_gatt_replies(tg, _TAG_BTCTL, bdaddr)
+
+            hcidump_task1 = await tg.create_subprocess_task(_TAG_HDMPRAW,"hcidump --raw")
+            hcidump_task2 = await tg.create_subprocess_task(_TAG_HDMPCKD,"hcidump -X")
+            await tg.sp_write(_TAG_BTCTL, f"gatt.select-attribute {read_notify_bluez_path}\n")
+            await tg.sp_write(_TAG_BTCTL, f"gatt.notify on\n")
+            print(f"Subscribed for HOGP responses on {read_notify_bluez_path}")
+            await tg.sp_write(_TAG_BTCTL, f"gatt.select-attribute {write_bluez_path}\n")
+            print(f"Sending HOGP commands and requests to {write_bluez_path}")
+
+            # await tg.sp_read(_TAG_HDMPRAW,1.0)
+            # await tg.sp_read(_TAG_HDMPCKD,1.0)
+            for msg in (
+                # "--char-write --handle=0x0018 --value=0x0100",
+                # "'0x35 0x00 0x02 0x1a 0x00' 0 0",
+                # "--char-write --handle=0x001b --value=0x3500040a023a00",
+                # "--char-write --handle=0x001b --value=0x3500040a027200",
+                # "--char-write --handle=0x001b --value=0x3500060a0422020801",
+                # "--char-write --handle=0x001b --value=0x3500050a03ca0100",
+                # "--char-write-req --handle=0x001b --value=0x3500041a020801",
+                # "--char-read --handle=0x0017"
+            ):
+                await tg.sp_write(_TAG_BTCTL, f"gatt.write {msg}\n")
+                print(await tg.sp_read(_TAG_BTCTL, 3.0))
+                print(await tg.sp_read(_TAG_HDMPRAW,1.0))
+                print(await tg.sp_read(_TAG_HDMPCKD,1.0))
+
 
         except RuntimeError:
             traceback.print_exception(sys.exc_info()[1])
@@ -205,9 +240,14 @@ async def mmp_main():
         finally:
             await tg.sp_write(_TAG_BTCTL,"quit\n")
 
+        # Drain unread hcidump output
+        # await tg.sp_read(_TAG_HDMPRAW,1.0)
+        # await tg.sp_read(_TAG_HDMPCKD,1.0)
+
         print("Terminating processes")
         await tg.sp_terminate(_TAG_BTCTL)
-        await tg.sp_terminate(_TAG_HDMP)
+        await tg.sp_terminate(_TAG_HDMPRAW)
+        await tg.sp_terminate(_TAG_HDMPCKD)
         print("Waiting for processes to exit")
         await tg.wait_for_processes()
 
