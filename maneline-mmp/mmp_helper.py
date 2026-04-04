@@ -2,7 +2,6 @@
 
 import asyncio
 import collections
-import gc
 import json
 import os
 import re
@@ -43,21 +42,19 @@ class SubprocessTaskGroup(asyncio.TaskGroup):
             await asyncio.sleep(p.timeout_factor)
         except ConnectionResetError:
             pass
-    async def sp_read(self,tag, silence_timeout=None):
+    async def sp_read(self,tag, silence_timeout=1.0):
         p = self.subprocess_map[tag]
         if silence_timeout is None:
             silence_timeout = p.timeout_factor
         retval = bytes()
-        try:
-            while(True):
+        read_again = True
+        while read_again is True:
+            try:
                 async with asyncio.timeout(silence_timeout):
-                    next_chunk = await p.stdout.read()
-                    if len(next_chunk)==0:
-                            break
-                    else:
-                        retval += next_chunk
-        except TimeoutError:
-            pass
+                    next_chunk = await p.stdout.read(1)
+                    retval += next_chunk
+            except TimeoutError:
+                read_again = False
         if p.text_io:
             retval = retval.decode()
         return retval
@@ -97,57 +94,19 @@ class SubprocessTaskGroup(asyncio.TaskGroup):
         p._transport.close()
 
     async def wait_for_processes(self, timeout_factor=None):
-        while len(self.subprocess_map)==0:
+        while len(self.subprocess_map)>0:
+            k = list(self.subprocess_map.keys())[0]
             print(f"Stopping process {k}",flush=True)
             p = self.subprocess_map[k]
-            if timeout_factor is None:
-                timeout_factor = p.timeout_factor
-            try:
-                subprocess_stopped = False
-                p.stdin.close()
-                await p.stdin.wait_closed()
-                while subprocess_stopped is False:
-                    async with asyncio.timeout(timeout_factor):
-                        try:
-                            print("Sending SIGTERM",flush=True,end="")
-                            p.terminate()
-                            print(" ... terminated")
-                            subprocess_stopped = True
-                            break
-                        except TimeoutError:
-                            print(" ... did not exit")
-                    async with asyncio.timeout(timeout_factor):
-                        try:
-                            print("Sending SIGKILL",flush=True,end="")
-                            p.kill()
-                            print(" ... killed")
-                            subprocess_stopped = True
-                        except TimeoutError:
-                            print(" ... did not exit")
-                    break
-
-                if True:
-                    # Attempt to read any remaining data on stdout
-                    try:
-                        async with asyncio.timeout(timeout_factor):
-                            output = await self.sp_read(k)
-                            print(f"Final output on {k}>>>\n{output}\n<<<")
-                    except asyncio.exceptions.CancelledError:
-                        print(f"No final output on {k}")
-                    except asyncio.exceptions.TimeoutError:
-                        print(f"No final output on {k}")
-                p.stdout.close()
-                await p.stdout.wait_closed()
-            except:
-                print(f"Shutdown of subprocess {k} raised unhandled exception and might still be running)")
-                traceback.print_exception(sys.exc_info()[1])
-                break
-            try:
-                del self.task_map[k]
-                del self.subprocess_map[k]
-            except RuntimeError:
-                print("RE")
-                pass
+            assert p.returncode is not None
+            so, se = await p.communicate()
+            if p.text_io:
+                so = so.decode()
+            print(f"trailing output from {k}:\n{so}\n")
+            assert se is None
+            del self.subprocess_map[k]
+            # del self.task_map[k]
+        return
 
 class ScriptRunner:
     def __init__(self, task_group):
@@ -186,13 +145,14 @@ class ScriptRunner:
 async def get_mmp_bdaddr(task_group, btctl_tag, hdmp_tag):
     await asyncio.sleep(1.0)
     await task_group.sp_write(btctl_tag,"\n") # for output clarity
+    await task_group.sp_write(btctl_tag,"scan.transport le\n")
     await task_group.sp_write(btctl_tag,"scan.clear\n")
     await task_group.sp_write(btctl_tag,"scan.pattern 'Mustang Micro Plus'\n")
-    await task_group.sp_write(btctl_tag,"scan le\n")
+    await task_group.sp_write(btctl_tag,"scan on\n")
     bd_addr = None
     for _ in range(0,3):
         await asyncio.sleep(2.0)
-        scan_output = await task_group.sp_read(hdmp_tag,2.0)
+        scan_output = await task_group.sp_read(btctl_tag,2.0)
         print(scan_output)
         bdaddr_pattern = re.compile(r"Device ([:\d\w]+) RSSI")
         bdaddr_match = bdaddr_pattern.search(scan_output)
@@ -200,6 +160,8 @@ async def get_mmp_bdaddr(task_group, btctl_tag, hdmp_tag):
             bd_addr = bdaddr_match.group(1)
             break
     await task_group.sp_write(btctl_tag,"scan off\n")
+    hcidump_output = await task_group.sp_read(btctl_tag,2.0)
+    # print(hcidump_output)
     return bd_addr
 
 async def subscribe_for_gatt_replies(task_group, tag, bdaddr):
@@ -208,8 +170,8 @@ async def subscribe_for_gatt_replies(task_group, tag, bdaddr):
     await task_group.sp_write(tag,f"connect {bdaddr}\n")
     await asyncio.sleep(1.0)
     await task_group.sp_write(tag,f"gatt.list-attributes\n")
-    await asyncio.sleep(5.0)
-    char_output=await task_group.sp_read(tag,5.0)
+    await asyncio.sleep(1.0)
+    char_output=await task_group.sp_read(tag,1.0)
     print(f"Connect output:\n>>>>\n{char_output}\n<<<<\n")
     char_pattern = re.compile(r"(/org/bluez/\w+/\w+/service0015/char0016)")
     char_match = char_pattern.search(char_output)
@@ -243,14 +205,11 @@ async def mmp_main():
         finally:
             await tg.sp_write(_TAG_BTCTL,"quit\n")
 
-        gc.collect()
-
-        print("Waiting for processes to exit")
+        print("Terminating processes")
         await tg.sp_terminate(_TAG_BTCTL)
         await tg.sp_terminate(_TAG_HDMP)
-        gc.collect()
+        print("Waiting for processes to exit")
         await tg.wait_for_processes()
-        gc.collect()
 
     # The await is implicit when the context manager exits.
     print(f"finished at {time.strftime('%X')}")
