@@ -26,12 +26,15 @@ async def main(args):
         print(f"{bd!r} with {ad!r}")
         await client.connect()
         print("Connected")
+        handle_db = {}
         for s in client.services:
-            print("S:",s)
+            handle_db[s.handle]=("S",s)
             for c in s.characteristics:
-                print("C:",c)
+                handle_db[c.handle]=("C",c)
                 for d in c.descriptors:
-                    print("D:",d)
+                    handle_db[d.handle]=("D",d)
+        for h in sorted(handle_db.keys()):
+            print(f"{h:04x} {h:04d}: {handle_db[h][0]} {handle_db[h][1]}")
         print("Services, Characteristics and Descriptors listed")
 
 
