@@ -1,0 +1,52 @@
+
+
+(.venv3) root@tim-OptiPlex-7450-AIO:/home/tim/github/scratchpad/maneline-mmp# gatttool --device=84:17:15:2B:4E:7E -I
+[84:17:15:2B:4E:7E][LE]> connect
+Attempting to connect to 84:17:15:2B:4E:7E
+Connection successful
+[84:17:15:2B:4E:7E][LE]> primary
+attr handle: 0x0001, end grp handle: 0x0006 uuid: 00001801-0000-1000-8000-00805f9b34fb
+attr handle: 0x0007, end grp handle: 0x000b uuid: 00001800-0000-1000-8000-00805f9b34fb
+attr handle: 0x000c, end grp handle: 0x0014 uuid: 00001100-d102-11e1-9b23-00025b00a5a5
+attr handle: 0x0015, end grp handle: 0xffff uuid: 90559580-b707-11ee-acb1-7b7e30f1af54
+[84:17:15:2B:4E:7E][LE]> characteristics
+handle: 0x0002, char properties: 0x20, char value handle: 0x0003, uuid: 00002a05-0000-1000-8000-00805f9b34fb
+handle: 0x0005, char properties: 0x0a, char value handle: 0x0006, uuid: 00002b29-0000-1000-8000-00805f9b34fb
+handle: 0x0008, char properties: 0x02, char value handle: 0x0009, uuid: 00002a00-0000-1000-8000-00805f9b34fb
+handle: 0x000a, char properties: 0x02, char value handle: 0x000b, uuid: 00002a01-0000-1000-8000-00805f9b34fb
+handle: 0x000d, char properties: 0x08, char value handle: 0x000e, uuid: 00001101-d102-11e1-9b23-00025b00a5a5
+handle: 0x000f, char properties: 0x12, char value handle: 0x0010, uuid: 00001102-d102-11e1-9b23-00025b00a5a5
+handle: 0x0012, char properties: 0x16, char value handle: 0x0013, uuid: 00001103-d102-11e1-9b23-00025b00a5a5
+handle: 0x0016, char properties: 0x12, char value handle: 0x0017, uuid: 1017adcc-dcbc-4387-a59f-2546b2ea5bb0
+handle: 0x001a, char properties: 0x0c, char value handle: 0x001b, uuid: 820a7e34-4e0a-4f90-8520-04ebce35a3a1
+[84:17:15:2B:4E:7E][LE]> char-desc
+handle: 0x0001, uuid: 00002800-0000-1000-8000-00805f9b34fb
+handle: 0x0002, uuid: 00002803-0000-1000-8000-00805f9b34fb
+handle: 0x0003, uuid: 00002a05-0000-1000-8000-00805f9b34fb
+handle: 0x0004, uuid: 00002902-0000-1000-8000-00805f9b34fb
+handle: 0x0005, uuid: 00002803-0000-1000-8000-00805f9b34fb
+handle: 0x0006, uuid: 00002b29-0000-1000-8000-00805f9b34fb
+handle: 0x0007, uuid: 00002800-0000-1000-8000-00805f9b34fb
+handle: 0x0008, uuid: 00002803-0000-1000-8000-00805f9b34fb
+handle: 0x0009, uuid: 00002a00-0000-1000-8000-00805f9b34fb
+handle: 0x000a, uuid: 00002803-0000-1000-8000-00805f9b34fb
+handle: 0x000b, uuid: 00002a01-0000-1000-8000-00805f9b34fb
+handle: 0x000c, uuid: 00002800-0000-1000-8000-00805f9b34fb
+handle: 0x000d, uuid: 00002803-0000-1000-8000-00805f9b34fb
+handle: 0x000e, uuid: 00001101-d102-11e1-9b23-00025b00a5a5
+handle: 0x000f, uuid: 00002803-0000-1000-8000-00805f9b34fb
+handle: 0x0010, uuid: 00001102-d102-11e1-9b23-00025b00a5a5
+handle: 0x0011, uuid: 00002902-0000-1000-8000-00805f9b34fb
+handle: 0x0012, uuid: 00002803-0000-1000-8000-00805f9b34fb
+handle: 0x0013, uuid: 00001103-d102-11e1-9b23-00025b00a5a5
+handle: 0x0014, uuid: 00002902-0000-1000-8000-00805f9b34fb
+handle: 0x0015, uuid: 00002800-0000-1000-8000-00805f9b34fb
+handle: 0x0016, uuid: 00002803-0000-1000-8000-00805f9b34fb
+handle: 0x0017, uuid: 1017adcc-dcbc-4387-a59f-2546b2ea5bb0
+handle: 0x0018, uuid: 00002902-0000-1000-8000-00805f9b34fb
+handle: 0x0019, uuid: 00002901-0000-1000-8000-00805f9b34fb
+handle: 0x001a, uuid: 00002803-0000-1000-8000-00805f9b34fb
+handle: 0x001b, uuid: 820a7e34-4e0a-4f90-8520-04ebce35a3a1
+handle: 0x001c, uuid: 00002902-0000-1000-8000-00805f9b34fb
+handle: 0x001d, uuid: 00002901-0000-1000-8000-00805f9b34fb
+[84:17:15:2B:4E:7E][LE]>
