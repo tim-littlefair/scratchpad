@@ -1,1 +1,5 @@
-_work
+**/_work
+**/.venv3
+**/__pycache__
+
+
