@@ -1,0 +1,40 @@
+#!/usr/bin/expect -f
+
+set bdaddr [ lindex $argv 0 ]
+
+puts "Using $bdaddr\n"
+
+set timeout 5
+spawn /home/tim/github/bluez/tools/btgatt-client --verbose --dest $bdaddr --mtu 128
+expect "GATT discovery procedures complete"
+expect "descr - handle: 0x001d"
+expect "#"
+puts "half-second sleep"
+sleep 0.5
+puts "slept"
+
+send "register-notify 0x0017\n"
+expect "Registering notify handler with id: 2"
+
+# send "write-value -s -w 0x001b 0 0x35 0x00 0x02 0x1a 0x00\n"
+# expect "#"
+# 35:00:05:0a:03:c2:01:00
+# 35:00:04:0a:02:3a:00
+# 35:00:04:0a:02:72:00"
+# 0204000e000a000400521b003500040a027200
+
+send "write-long-value -r 0x001b 0 0x35 0x00 0x05 0x0a 0x03 0xc2 0x01 0x00\n"
+expect "#"
+send "write-long-value -r 0x001b 0 0x35 0x00 0x04 0x0a 0x02 0x3a 0x00\n"
+expect "#"
+send "write-long-value -r 0x001b 0 0x35 0x00 0x04 0x0a 0x02 0x72 0x00\n"
+expect "#"
+
+send "read-long-value 0x0017 0\n"
+expect "#"
+puts "Waiting for notifications"
+sleep 20
+puts "Closing"
+exit
+
+
