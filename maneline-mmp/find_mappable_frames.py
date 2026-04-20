@@ -41,7 +41,8 @@ def parse_frames(fn, which_mapping=None):
 					break
 				else:
 					_report_on_invisible_frames(unparsed_count, keepalive_count)
-					print(candidate_op_name, match.groups())
+					frame_number = f["_source"]["layers"]["frame"]["frame.number"]
+					print(frame_number, candidate_op_name, match.groups())
 					unparsed_count = 0
 					keepalive_count = 0
 					mapping_found = True

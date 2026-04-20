@@ -1,21 +1,75 @@
 [
     {
         "frame_re": "0204000f000b000400521b003500050a03c20100",
-        "frame_op_name": "write-req-KEEPALIVE",
+        "frame_op_name": "client-cmd-KEEPALIVE",
         "btgatt-client_command": "write-value -w 0x001b 0 0x35 0x00 05 0x0a 0x03 0xc2 0x01 0x00"
     },
+	{
+		"frame_re": "0413050104000100",
+        "frame_op_name": "mmp-evt-KEEPALIVE"
+	},
     {
         "frame_re": "020400(\\w{2})00(\\w{2})00(\\w{2})0052(\\w{4})(\\w+)",
-        "frame_op_name": "write-req",
+        "frame_op_name": "client-cmd-write-req",
         "frame_param_names": [ "lehex2_hnd", "hex_payload" ],
         "btgatt-client_command": "write-value -w {lehex2_hnd} 0 {hex_bytes(hex_payload)}"
     },
     {
         "frame_re": "010d080403000700",
-        "frame_op_name": "connect_with_params",
-        "btgatt-client_command": "write-value -w {lehex2_hnd} 0 {hex_bytes(hex_payload)}"        
+        "frame_op_name": "client-cmd-connect-with-params"
+	},
+    {
+        "frame_re": "040e06010d08000300",
+        "frame_op_name": "mmp-evt-connect-ack"
+	},
+    {
+        "frame_re": "02032007000300c103700904",
+        "frame_op_name": "mmp-evt-btavdtp"
+	},	
+	{
+		"frame_re": "0413050103000100",
+        "frame_op_name": "mmp-evt-connect1-hci"
+	},
+	{
+		"frame_re": "0203200600020046007209",
+        "frame_op_name": "mmp-cmd-btavdtp"
+	},
+	{
+		"frame_re": "040e06010d08000300",
+        "frame_op_name": "mmp-evt-connect2-hci"
+	},
+	{
+		"frame_re": "0103080a03002003900104000100",
+        "frame_op_name": "client-cmd-configure_sniff_etc"
+	},
+	{
+		"frame_re": "040f0400010308",
+        "frame_op_name": "evt_config_sniff_result"
+	},
+	{
+		"frame_re0": "041406000300021803",
+		"frame_re": "04(\\w{2})(\\w{2})(\\w+)",
+        "frame_op_name": "mmp_evt"
+	},
+	{
+		"frame_re0": "0157fd020001",
+		"frame_re": "01(\\w{4})(\\w{2})(\\w+)",
+        "frame_op_name": "client_cmd"
+	},
+	{
+		"frame_re": "X",
+        "frame_op_name": "Y"
+	},
+	{
+		"frame_re": "X",
+        "frame_op_name": "Y"
+	},
+	{
+		"frame_re": "X",
+        "frame_op_name": "Y"
+	},
+	{
+		"frame_re": "X",
+        "frame_op_name": "Y"
 	}
-	
-    
-    
 ]
