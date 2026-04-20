@@ -53,12 +53,13 @@
 	},
 	{
 		"frame_re0": "0157fd020001",
-		"frame_re": "01(\\w{4})(\\w{2})(\\w+)",
+		"frame_re": "01(\\w{4})(\\w{2})(\\w*)",
         "frame_op_name": "client_cmd"
 	},
 	{
-		"frame_re": "X",
-        "frame_op_name": "Y"
+		"frame_re0": "020420070003000400028000",
+		"frame_re": "02(\\w{4})(\\w{4})(\\w+)",
+        "frame_op_name": "mmp_cmd"
 	},
 	{
 		"frame_re": "X",

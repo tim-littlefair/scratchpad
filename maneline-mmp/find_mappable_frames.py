@@ -9,8 +9,11 @@ def compile_mappings():
 		cm = re.compile(item.get("frame_re"))
 		item["frame_re"] = cm
 
+_SUPPRESS_INVISIBLE_FRAME_REPORT = True
 def _report_on_invisible_frames(unparsed_count, keepalive_count):
-	if unparsed_count + keepalive_count == 0:
+	if _SUPPRESS_INVISIBLE_FRAME_REPORT is True:
+		pass
+	elif unparsed_count + keepalive_count == 0:
 		pass
 	else:
 		print(f"""{
