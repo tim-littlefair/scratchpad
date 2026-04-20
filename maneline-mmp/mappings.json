@@ -1,0 +1,21 @@
+[
+    {
+        "frame_re": "0204000f000b000400521b003500050a03c20100",
+        "frame_op_name": "write-req-KEEPALIVE",
+        "btgatt-client_command": "write-value -w 0x001b 0 0x35 0x00 05 0x0a 0x03 0xc2 0x01 0x00"
+    },
+    {
+        "frame_re": "020400(\\w{2})00(\\w{2})00(\\w{2})0052(\\w{4})(\\w+)",
+        "frame_op_name": "write-req",
+        "frame_param_names": [ "lehex2_hnd", "hex_payload" ],
+        "btgatt-client_command": "write-value -w {lehex2_hnd} 0 {hex_bytes(hex_payload)}"
+    },
+    {
+        "frame_re": "010d080403000700",
+        "frame_op_name": "connect_with_params",
+        "btgatt-client_command": "write-value -w {lehex2_hnd} 0 {hex_bytes(hex_payload)}"        
+	}
+	
+    
+    
+]
